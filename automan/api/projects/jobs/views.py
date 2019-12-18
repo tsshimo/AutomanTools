@@ -44,6 +44,13 @@ class JobViewSet(viewsets.ModelViewSet):
             dataset_id = int(job_config['dataset_id'])
             annotation_id = int(job_config['annotation_id'])
             content = JobSerializer.archive(user_id, int(project_id), dataset_id, original_id, annotation_id)
+        elif job_type == 'SEMILABEL':
+            # TODO check permission
+            job_config = request.data['job_config']
+            dataset_id = int(job_config['dataset_id'])
+            candidate_id = int(job_config['candidate_id'])
+            annotation_id = int(job_config['annotation_id'])
+            content = JobSerializer.labeling(user_id, project_id, dataset_id, candidate_id, annotation_id)
         else:
             raise ValidationError
 

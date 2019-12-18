@@ -9,6 +9,7 @@ from libs.k8s.jobs import BaseJob
 from libs.k8s.jobs.annotation_archiver import AnnotationArchiver
 from libs.k8s.jobs.rosbag_extractor import RosbagExtractor
 from libs.k8s.jobs.rosbag_analyzer import RosbagAnalyzer
+from libs.k8s.jobs.semi_labeling import SemiLabeling
 from datetime import datetime, timezone
 from projects.jobs.models import Job
 from projects.jobs.const import STATUS_MAP, UNKNOWN_LIMIT_TIME
@@ -211,6 +212,29 @@ class JobSerializer(serializers.ModelSerializer):
             return res
         else:
             raise ValidationError()
+
+    @classmethod
+    @transaction.atomic
+    def labeling(cls, user_id, project_id, dataset_id, candidate_id, annotation_id):
+        automan_config = cls.__get_automan_config(user_id)
+        job_config = {
+            'automan_config': automan_config,
+            'labeling_config': {
+                'project_id':project_id, 'dataset_id':dataset_id,
+                'candidate_id':candidate_id, 'annotation_id':annotation_id
+                }
+        }
+        job_config_json = json.dumps(job_config)
+        new_job = Job(
+            job_type='semi-labeling',
+            user_id=user_id,
+            project_id=project_id,
+            job_config=job_config_json)
+        new_job.save()
+        job = SemiLabeling(**job_config)
+        job.create(cls.__generate_job_name(new_job.id, 'semi-labeling'))
+        res = job.run()
+        return res
 
     @staticmethod
     def __get_automan_config(user_id):
