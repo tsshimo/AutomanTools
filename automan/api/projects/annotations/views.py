@@ -30,12 +30,12 @@ def annotations(request, project_id):
     else:
         if not Permission.hasPermission(user_id, 'create_annotationwork', project_id):
             raise PermissionDenied
-
+        run_autolabeling = request.data.get('autolabel')
         name = request.data.get('name')
         dataset_id = request.data.get('dataset_id')
-
         annotation_id = annotation_manager.create_annotation(user_id, project_id, name, dataset_id)
-
+        if run_autolabeling:
+            annotation_manager.autolabeling(user_id, project_id, dataset_id, annotation_id)
         contents = annotation_manager.get_annotation(annotation_id)
         return HttpResponse(status=201, content=contents, content_type='application/json')
 

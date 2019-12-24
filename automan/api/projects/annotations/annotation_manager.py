@@ -15,6 +15,9 @@ from api.settings import PER_PAGE, SORT_KEY
 from api.common import validation_check
 from api.errors import UnknownLabelTypeError
 from projects.klassset.klassset_manager import KlasssetManager
+from projects.datasets.dataset_manager import DatasetManager
+from projects.originals.original_manager import OriginalManager
+from projects.jobs.serializer import JobSerializer
 
 
 class AnnotationManager(object):
@@ -329,3 +332,13 @@ class AnnotationManager(object):
         lock.expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
         lock.save()
         return True
+
+    def autolabeling(self, user_id, project_id, dataset_id, annotation_id):
+        dataset_manager = DatasetManager()
+        dataset = dataset_manager.get_dataset(user_id, dataset_id)
+        original_id = dataset['original_id']
+        original_manager = OriginalManager()
+        candidates = original_manager.get_dataset_candidates(project_id, original_id, 'IMAGE')
+        for candidate in candidates['records']:
+            candidate_id = candidate['candidate_id']
+            content = JobSerializer.labeling(user_id, project_id, dataset_id, candidate_id, annotation_id)

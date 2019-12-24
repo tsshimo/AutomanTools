@@ -11,6 +11,8 @@ import DialogActions from '@material-ui/core/DialogActions';
 import Button from '@material-ui/core/Button';
 import Close from '@material-ui/icons/Close';
 import Send from '@material-ui/icons/Send';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
 
 import FormControl from '@material-ui/core/FormControl';
 import TextField from '@material-ui/core/TextField';
@@ -19,7 +21,8 @@ class AnnotationForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: ""
+      name: "",
+      autolabel: false
     };
   }
   handleClickAddAnnotation = () => {
@@ -32,6 +35,7 @@ class AnnotationForm extends React.Component {
     this.setState({ error_string: '' });
     const data = {
       name: name,
+      autolabel: this.state.autolabel,
       dataset_id: this.props.dataset_id
     };
     RequestClient.post(
@@ -49,6 +53,9 @@ class AnnotationForm extends React.Component {
   };
   handleChangeName = e => {
     this.setState({ name: e.target.value });
+  };
+  handleChangeAutolabel = e => {
+    this.setState({ autolabel: e.target.checked });
   };
   closeButton = (
     <Button onClick={this.props.hide}>
@@ -72,6 +79,19 @@ class AnnotationForm extends React.Component {
                 label="New Annotation Name"
                 value={this.state.name}
                 onChange={this.handleChangeName}
+              />
+            </FormControl>
+            <br />
+            <FormControl>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={this.state.autolabel}
+                    onChange={this.handleChangeAutolabel}
+                    color="primary"
+                  />
+                }
+                label="Run Autolabeling"
               />
             </FormControl>
           </DialogContent>
